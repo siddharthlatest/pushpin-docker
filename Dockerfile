@@ -30,7 +30,6 @@ RUN \
 RUN \
   cd /pushpin && \
   cp examples/config/* . && \
-  sed -i -e 's/localhost:80/app:8080/' routes && \
   sed -i -e 's/push_in_http_addr=127.0.0.1/push_in_http_addr=0.0.0.0/' pushpin.conf
 
 # Cleanup
@@ -42,8 +41,11 @@ RUN \
 # Define working directory
 WORKDIR /pushpin
 
+# Copy scripts
+ADD ./scripts /pushpin
+
 # Define default command
-CMD ["/pushpin/pushpin"]
+CMD ["/pushpin/configure_and_run.sh"]
 
 # Expose ports.
 # - 7999: HTTP port to forward on to the app
