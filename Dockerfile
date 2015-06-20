@@ -30,7 +30,7 @@ RUN \
 RUN \
   cd /pushpin && \
   cp examples/config/* . && \
-  sed -i -e 's/push_in_http_addr=127.0.0.1/push_in_http_addr=0.0.0.0/' pushpin.conf
+  sed -i -e 's/push_in_sub_spec=tcp:\/\/127.0.0.1:5562/push_in_sub_spec=tcp:\/\/0.0.0.0:5562/' pushpin.conf
 
 # Cleanup
 RUN \
@@ -49,6 +49,6 @@ CMD ["/pushpin/configure_and_run.sh"]
 
 # Expose ports.
 # - 7999: HTTP port to forward on to the app
-# - 5561: HTTP port to receive real-time messages to update in the app
+# - 5562: ZMQ port to receive PUB connections
 EXPOSE 7999
-EXPOSE 5561
+EXPOSE 5562
