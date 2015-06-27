@@ -17,7 +17,7 @@ RUN \
   python-blist libcurl4-openssl-dev mongrel2-core git 
 
 # Build Zurl
-ENV ZURL_VERSION 1.4.3
+ENV ZURL_VERSION 1.4.5
 RUN \
   git clone https://github.com/fanout/zurl.git /zurl && \
   cd /zurl && \
