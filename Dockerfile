@@ -14,7 +14,15 @@ RUN \
   apt-get install -y pkg-config libqt4-dev libqca2-dev \
   libqca2-plugin-ossl libqjson-dev libzmq3-dev python-zmq \
   python-setproctitle python-jinja2 python-tnetstring \
-  python-blist libcurl4-openssl-dev mongrel2-core git 
+  python-blist libcurl4-openssl-dev sqlite3 libsqlite3-dev git 
+
+# Build Mongrel2
+RUN \
+  git clone https://github.com/fanout/mongrel2.git /mongrel2 && \
+  cd /mongrel2 && \
+  git checkout develop && \
+  make && \
+  make install
 
 # Build Zurl
 ENV ZURL_VERSION 1.4.5
@@ -32,7 +40,7 @@ ENV PUSHPIN_VERSION 1.3.1
 RUN \
   git clone https://github.com/fanout/pushpin.git /pushpin && \
   cd /pushpin && \
-  git checkout tags/v"$PUSHPIN_VERSION" && \
+  git checkout develop && \
   git submodule init && git submodule update && \
   make
 
@@ -41,6 +49,8 @@ RUN \
   cd /pushpin && \
   cp examples/config/* . && \
   sed -i -e 's/push_in_http_addr=127.0.0.1/push_in_http_addr=0.0.0.0/' pushpin.conf && \
+  sed -i -e 's/os.path.join(self.logdir, "mongrel2_%d.log" % self.port)/"\/dev\/stdout"/' runner/services.py && \
+  sed -i -e 's/os.path.join(self.logdir, self.name() + ".log")/"\/dev\/stdout"/' runner/services.py && \
   sed -i -e 's/stats_spec=ipc:\/\/{rundir}\/pushpin-stats/stats_spec=tcp:\/\/0.0.0.0:5565/' pushpin.conf
 
 # Cleanup
