@@ -17,15 +17,16 @@ RUN \
   python-blist libcurl4-openssl-dev sqlite3 libsqlite3-dev git 
 
 # Build Mongrel2
+ENV MONGREL_VERSION snapshot-20150723
 RUN \
   git clone https://github.com/fanout/mongrel2.git /mongrel2 && \
   cd /mongrel2 && \
-  git checkout develop && \
+  git checkout tags/"$MONGREL_VERSION" && \
   make && \
   make install
 
 # Build Zurl
-ENV ZURL_VERSION 1.4.5
+ENV ZURL_VERSION 1.4.9
 RUN \
   git clone https://github.com/fanout/zurl.git /zurl && \
   cd /zurl && \
@@ -36,11 +37,11 @@ RUN \
   make install
 
 # Build Pushpin
-ENV PUSHPIN_VERSION 1.3.1
+ENV PUSHPIN_VERSION 1.5.0
 RUN \
   git clone https://github.com/fanout/pushpin.git /pushpin && \
   cd /pushpin && \
-  git checkout develop && \
+  git checkout tags/v"$PUSHPIN_VERSION" && \
   git submodule init && git submodule update && \
   make
 
@@ -57,6 +58,7 @@ RUN \
 RUN \
   apt-get clean && \
   rm -fr /zurl && \
+  rm -fr /mogrel2 && \
   rm -fr /var/lib/apt/lists/* && \
   rm -fr /tmp/*
 
