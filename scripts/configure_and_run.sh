@@ -1,5 +1,5 @@
 #!/bin/sh
 
-sed -i -e "s/localhost:80/$APP,over_http/" /pushpin/routes
+sed -i -e "s/localhost:80/$UPSTREAM-${TUTUM_CONTAINER_HOSTNAME##*-}:$UPSTREAM_PORT,over_http/" /pushpin/routes
 
-exec /pushpin/pushpin
+exec /pushpin/pushpin --verbose
