@@ -1,9 +1,10 @@
 #!/bin/sh
 
-if [ -z "$DOCKERCLOUD_CONTAINER_HOSTNAME" ]; then
-	sed -i -e "s/localhost:80/$UPSTREAM:$UPSTREAM_PORT,over_http/" /pushpin/routes
-else
-	sed -i -e "s/localhost:80/$UPSTREAM-${DOCKERCLOUD_CONTAINER_HOSTNAME##*-}:$UPSTREAM_PORT,over_http/" /pushpin/routes
-fi
 
-exec /pushpin/pushpin --verbose
+if [ -z "$DOCKERCLOUD_CONTAINER_HOSTNAME" ]; then
+	target=$UPSTREAM:$UPSTREAM_PORT
+else
+	target=$UPSTREAM-${DOCKERCLOUD_CONTAINER_HOSTNAME##*-}:$UPSTREAM_PORT
+fi
+ 
+exec /usr/bin/pushpin --merge-output --port=7999 --route=\"* ${target},over_http\"
