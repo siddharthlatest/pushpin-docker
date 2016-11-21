@@ -1,69 +1,51 @@
 #
 # Pushpin Dockerfile
 #
-# https://github.com/sacheendra/pushpin-docker
+# https://github.com/fanout/docker-pushpin
 #
+# Uses a custom script for setting target env.
 
 # Pull the base image
-FROM ubuntu:15.04
-MAINTAINER Sacheendra Talluri <sacheendra.t@gmail.com>
+FROM ubuntu:16.04
+MAINTAINER Justin Karneges <justin@fanout.io>
 
-# Install dependencies
+# Add private APT repository
 RUN \
   apt-get update && \
-  apt-get install -y pkg-config libqt4-dev libqca2-dev \
-  libqca2-plugin-ossl libqjson-dev libzmq3-dev python-zmq \
-  python-setproctitle python-jinja2 python-tnetstring \
-  python-blist libcurl4-openssl-dev sqlite3 libsqlite3-dev git 
+  apt-get install -y apt-transport-https software-properties-common && \
+  echo deb https://dl.bintray.com/fanout/debian fanout-xenial main \
+    | tee /etc/apt/sources.list.d/fanout.list && \
+  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys \
+    379CE192D401AB61
 
-# Build Mongrel2
-ENV MONGREL_VERSION snapshot-20150723
-RUN \
-  git clone https://github.com/fanout/mongrel2.git /mongrel2 && \
-  cd /mongrel2 && \
-  git checkout tags/"$MONGREL_VERSION" && \
-  make && \
-  make install
+ENV PUSHPIN_VERSION 1.14.0-1~xenial1
+ENV target app:8080
 
-# Build Zurl
-ENV ZURL_VERSION 1.4.9
+# Install Pushpin
 RUN \
-  git clone https://github.com/fanout/zurl.git /zurl && \
-  cd /zurl && \
-  git checkout tags/v"$ZURL_VERSION" && \
-  git submodule init && git submodule update && \
-  ./configure && \
-  make && \
-  make install
-
-# Build Pushpin
-ENV PUSHPIN_VERSION 1.5.0
-RUN \
-  git clone https://github.com/fanout/pushpin.git /pushpin && \
-  cd /pushpin && \
-  git checkout tags/v"$PUSHPIN_VERSION" && \
-  git submodule init && git submodule update && \
-  make
+  apt-get update && \
+  apt-get install -y pushpin=$PUSHPIN_VERSION
 
 # Configure Pushpin
 RUN \
-  cd /pushpin && \
-  cp examples/config/* . && \
-  sed -i -e 's/push_in_http_addr=127.0.0.1/push_in_http_addr=0.0.0.0/' pushpin.conf && \
-  sed -i -e 's/os.path.join(self.logdir, "mongrel2_%d.log" % self.port)/"\/dev\/stdout"/' runner/services.py && \
-  sed -i -e 's/os.path.join(self.logdir, self.name() + ".log")/"\/dev\/stdout"/' runner/services.py && \
-  sed -i -e 's/stats_spec=ipc:\/\/{rundir}\/pushpin-stats/stats_spec=tcp:\/\/0.0.0.0:5565/' pushpin.conf
+  sed -i \
+    -e 's/zurl_out_specs=.*/zurl_out_specs=ipc:\/\/\{rundir\}\/pushpin-zurl-in/' \
+    -e 's/zurl_out_stream_specs=.*/zurl_out_stream_specs=ipc:\/\/\{rundir\}\/pushpin-zurl-in-stream/' \
+    -e 's/zurl_in_specs=.*/zurl_in_specs=ipc:\/\/\{rundir\}\/pushpin-zurl-out/' \
+    /usr/lib/pushpin/internal.conf && \
+  sed -i \
+    -e 's/services=.*/services=mongrel2,m2adapter,zurl,pushpin-proxy,pushpin-handler/' \
+    -e 's/push_in_spec=.*/push_in_spec=tcp:\/\/\*:5560/' \
+    -e 's/push_in_http_addr=.*/push_in_http_addr=0.0.0.0/' \
+    -e 's/push_in_sub_spec=.*/push_in_sub_spec=tcp:\/\/\*:5562/' \
+    -e 's/command_spec=.*/command_spec=tcp:\/\/\*:5563/' \
+    /etc/pushpin/pushpin.conf
 
 # Cleanup
 RUN \
   apt-get clean && \
-  rm -fr /zurl && \
-  rm -fr /mogrel2 && \
   rm -fr /var/lib/apt/lists/* && \
   rm -fr /tmp/*
-
-# Define working directory
-WORKDIR /pushpin
 
 # Copy scripts
 ADD ./scripts /pushpin
@@ -73,8 +55,12 @@ CMD ["/pushpin/configure_and_run.sh"]
 
 # Expose ports.
 # - 7999: HTTP port to forward on to the app
-# - 5561: HTTP port to receive real-time messages to update in the app
-# - 5565: ZMQ port for listening to stats
+# - 5560: ZMQ PULL for receiving messages
+# - 5561: HTTP port for receiving messages and commands
+# - 5562: ZMQ SUB for receiving messages
+# - 5563: ZMQ REP for receiving commands
 EXPOSE 7999
+EXPOSE 5560
 EXPOSE 5561
-EXPOSE 5565
+EXPOSE 5562
+EXPOSE 5563
