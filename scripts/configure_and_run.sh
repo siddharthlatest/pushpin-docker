@@ -6,5 +6,6 @@ if [ -z "$DOCKERCLOUD_CONTAINER_HOSTNAME" ]; then
 else
 	target=$UPSTREAM-${DOCKERCLOUD_CONTAINER_HOSTNAME##*-}:$UPSTREAM_PORT
 fi
- 
-exec /usr/bin/pushpin --merge-output --port=7999 --route=\"* ${target},over_http\"
+
+echo "* ${target},over_http" > /etc/pushpin/routes
+exec /usr/bin/pushpin --merge-output --port=7999
