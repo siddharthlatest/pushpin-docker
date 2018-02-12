@@ -2,8 +2,6 @@
 # Pushpin Dockerfile
 #
 # https://github.com/fanout/docker-pushpin
-#
-# Uses a custom script for setting target env.
 
 # Pull the base image
 FROM ubuntu:16.04
@@ -18,7 +16,7 @@ RUN \
   apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys \
     379CE192D401AB61
 
-ENV PUSHPIN_VERSION 1.14.0-1~xenial1
+ENV PUSHPIN_VERSION 1.17.2-1~xenial1
 ENV target app:8080
 
 # Install Pushpin
@@ -40,6 +38,7 @@ RUN \
     -e 's/push_in_sub_spec=.*/push_in_sub_spec=tcp:\/\/\*:5562/' \
     -e 's/command_spec=.*/command_spec=tcp:\/\/\*:5563/' \
     /etc/pushpin/pushpin.conf
+
 
 # Cleanup
 RUN \
