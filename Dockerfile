@@ -12,12 +12,12 @@ MAINTAINER Justin Karneges <justin@fanout.io>
 RUN \
   apt-get update && \
   apt-get install -y apt-transport-https software-properties-common && \
-  echo deb https://dl.bintray.com/fanout/debian fanout-xenial main \
+  echo deb https://dl.bintray.com/fanout/debian fanout-bionic main \
     | tee /etc/apt/sources.list.d/fanout.list && \
   apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys \
     379CE192D401AB61
 
-ENV PUSHPIN_VERSION 1.18.0-1~bionic1
+ENV PUSHPIN_VERSION 1.19.0-1~bionic1
 ENV TARGET api-frontend:3000
 
 # Install Pushpin
