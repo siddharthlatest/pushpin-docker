@@ -2,9 +2,10 @@
 # Pushpin Dockerfile
 #
 # https://github.com/fanout/docker-pushpin
+#
 
 # Pull the base image
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Justin Karneges <justin@fanout.io>
 
 # Add private APT repository
@@ -16,8 +17,8 @@ RUN \
   apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys \
     379CE192D401AB61
 
-ENV PUSHPIN_VERSION 1.17.2-1~xenial1
-ENV target app:8080
+ENV PUSHPIN_VERSION 1.19.0-1~bionic1
+ENV TARGET api-frontend:3000
 
 # Install Pushpin
 RUN \
@@ -39,18 +40,14 @@ RUN \
     -e 's/command_spec=.*/command_spec=tcp:\/\/\*:5563/' \
     /etc/pushpin/pushpin.conf
 
-
 # Cleanup
 RUN \
   apt-get clean && \
   rm -fr /var/lib/apt/lists/* && \
   rm -fr /tmp/*
 
-# Copy scripts
-ADD ./scripts /pushpin
-
 # Define default command
-CMD ["/pushpin/configure_and_run.sh"]
+CMD ["sh", "-c", "/usr/bin/pushpin --merge-output --port=7999 --route=\"* ${TARGET},over_http\""]
 
 # Expose ports.
 # - 7999: HTTP port to forward on to the app
